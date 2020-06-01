@@ -1,5 +1,3 @@
-For Problem Solving.
-
 # BOJ
 Sources of Baekjoon Online Judge.
 
