@@ -1,46 +1,34 @@
 #include <iostream>
-#include <algorithm>
 using namespace std;
 
-#define N 1005
-
-int a[N];
-int LIS[N];
-int ret[N];
+const int N = 1001;
+int a[N], d1[N], d2[N];
 
 int main() {
-    ios::sync_with_stdio(0);
-    cin.tie(0);
+	int n;
+	cin >> n;
+	for (int i = 0; i < n; i++) {
+		cin >> a[i];
+	}
 
-    int n;
-    cin >> n;
-    for (int i = 1; i <= n; i++) {
-        cin >> a[i];
-    }
+	for (int i = 0; i < n; i++) {
+		d1[i] = 1;
+		for (int j = 0; j < i; j++) {
+			if (a[i] > a[j] && d1[i] < d1[j] + 1) d1[i] = d1[j] + 1;
+		}
+	}
+	for (int i = n - 1; i >= 0; i--) {
+		d2[i] = 1;
+		for (int j = n - 1; j > i; j--) {
+			if (a[i] > a[j] && d2[i] < d2[j] + 1) d2[i] = d2[j] + 1;
+		}
+	}
 
-    for (int i = 0; i <= n; i++) {
-        for (int j = 1; j <= i; j++) {
-            for (int k = 0; k <= j - 1; k++) {
-                if (a[j] > a[k] && LIS[j] < LIS[k] + 1) LIS[j] = LIS[k] + 1;
-            }
-        }
+	int ans = 0;
+	for (int i = 0; i < n; i++) {
+		if (ans < d1[i] + d2[i] - 1) ans = d1[i] + d2[i] - 1;
+	}
+	cout << ans;
 
-        for (int j = i + 1; j <= n; j++) {
-            for (int k = i; k <= j - 1; k++) {
-                if (a[j] < a[k] && LIS[j] < LIS[k] + 1) LIS[j] = LIS[k] + 1;
-            }
-        }
-
-        sort(LIS, LIS + n + 1);
-        ret[i] = LIS[n];
-
-        for (int j = 0; j <= n; j++) {
-            LIS[j] = 0;
-        }
-    }
-
-    sort(ret, ret + n + 1);
-    cout << ret[n];
-
-    return 0;
+	return 0;
 }
