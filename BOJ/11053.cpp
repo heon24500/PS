@@ -1,29 +1,29 @@
 #include <iostream>
-#include <algorithm>
 using namespace std;
 
-#define N 1005
-int a[N];
-int LIS[N];
+const int N = 1001;
+int a[N], d[N];
 
 int main() {
-    ios::sync_with_stdio(0);
-    cin.tie(0);
+	ios::sync_with_stdio(0);
+	cin.tie(0);
 
-    int n;
-    cin >> n;
-    for (int i = 1; i <= n; i++) {
-        cin >> a[i];
-    }
+	int n;
+	cin >> n;
+	for (int i = 0; i < n; i++) {
+		cin >> a[i];
+	}
 
-    for (int i = 1; i <= n; i++) {
-        for (int j = 0; j <= i - 1; j++) {
-            if (a[i] > a[j] && LIS[i] < LIS[j] + 1) LIS[i] = LIS[j] + 1;
-        }
-    }
+	int ans = 0;
+	for (int i = 0; i < n; i++) {
+		d[i] = 1;
+		for (int j = 0; j < i; j++) {
+			if (a[i] > a[j] && d[i] < d[j] + 1) d[i] = d[j] + 1;
+		}
+		if (ans < d[i]) ans = d[i];
+	}
 
-    sort(LIS, LIS + n + 1);
-    cout << LIS[n];
+	cout << ans;
 
-    return 0;
+	return 0;
 }
