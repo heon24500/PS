@@ -1,35 +1,36 @@
+/* 1204. [S/W 문제해결 기본] 1일차 - 최빈수 구하기 */
+// 점수를 인덱스로 사용하여 입력 받을때 마다 해당 인덱스의 배열 값 +1 한 뒤 최대값 출력
 #include <iostream>
 using namespace std;
 
-int score[101];
-
 int main() {
-    ios::sync_with_stdio(0);
-    cin.tie(0);
+	freopen("input.txt", "r", stdin);
+	freopen("output.txt", "w", stdout);
 
-    int t;
-    cin >> t;
-    for (int i = 1; i <= t; i++) {
-        int case_num;
-        cin >> case_num;
-        for (int j = 0; j < 1000; j++) {
-            int s;
-            cin >> s;
-            score[s]++;
-        }
+	int t;
+	cin >> t;
+	while (t--) {
+		int t_num;
+		cin >> t_num;
 
-        int max = score[100], ret = 100;
-        score[100] = 0;
-        for (int j = 99; j >= 0; j--) {
-            if (max < score[j]) {
-                max = score[j];
-                ret = j;
-            }
-            score[j] = 0;
-        }
+		int cnt[101];
+		for (int i = 0; i <= 100; i++) {
+			cnt[i] = 0;
+		}
 
-        cout << "#" << case_num << " " << ret << "\n";
-    }
+		int max_num = 0, ret = 0;
+		for (int i = 0; i < 1000; i++) {
+			int n;
+			cin >> n;
+			cnt[n]++;
+			if ((max_num < cnt[n]) || (max_num == cnt[n] && ret < n)) {
+				max_num = cnt[n];
+				ret = n;
+			}
+		}
 
-    return 0;
+		cout << "#" << t_num << " " << ret << '\n';
+	}
+
+	return 0;
 }
