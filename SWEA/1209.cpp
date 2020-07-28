@@ -1,39 +1,48 @@
+/* 1209. [S/W 문제해결 기본] 2일차 - Sum */
 #include <iostream>
-#include <algorithm>
 using namespace std;
 
+int arr[100][100];
+int column_sum[100];
+
 int main() {
-    ios::sync_with_stdio(0);
-    cin.tie(0);
+	//freopen("input.txt", "r", stdin);
+	//freopen("output.txt", "w", stdout);
 
-    for (int i = 1; i <= 10; i++) {
-        int w_sum[100], h_sum[100], lr = 0, rl = 0;
-        for (int j = 0; j < 100; j++) {
-            w_sum[j] = 0;
-            h_sum[j] = 0;
-        }
+	for (int t = 1; t <= 10; t++) {
+		int t_num;
+		cin >> t_num;
 
-        int test_case;
-        cin >> test_case;
+		for (int i = 0; i < 100; i++) {
+			for (int j = 0; j < 100; j++) {
+				cin >> arr[i][j];
+			}
+		}
 
-        for (int j = 0; j < 100; j++) {
-            for (int k = 0; k < 100; k++) {
-                int num;
-                cin >> num;
-                w_sum[j] += num;
-                h_sum[k] += num;
-                if (k == j) lr += num;
-                if (k + j == 99) rl += num;
-            }
-        }
+		int ret = -1;
+		int lr_sum = 0, rl_sum = 0;
+		for (int i = 0; i < 100; i++) {
+			int row_sum = 0;
+			for (int j = 0; j < 100; j++) {
+				row_sum += arr[i][j];
+				column_sum[j] += arr[i][j];
+				if (i == j) lr_sum += arr[i][j];
+				if (i == (99 - j)) rl_sum += arr[i][j];
+			}
+			if (ret == -1) ret = row_sum;
+			else if (ret < row_sum) ret = row_sum;
+		}
 
-        sort(w_sum, w_sum + 100);
-        sort(h_sum, h_sum + 100);
-        int dia_max = max(lr, rl);
-        int sum_max = max(w_sum[99], h_sum[99]);
-        int ret = max(dia_max, sum_max);
-        cout << "#" << test_case << " " << ret << "\n";
-    }
+		for (int i = 0; i < 100; i++) {
+			if (ret < column_sum[i]) ret = column_sum[i];
+			column_sum[i] = 0;
+		}
 
-    return 0;
+		if (ret < lr_sum) ret = lr_sum;
+		if (ret < rl_sum) ret = rl_sum;
+
+		cout << "#" << t_num << " " << ret << '\n';
+	}
+
+	return 0;
 }
