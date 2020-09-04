@@ -1,66 +1,48 @@
 #include <iostream>
-#include <algorithm>
 #include <vector>
 using namespace std;
 
-#define N 25
-
-vector<int> ret;
-int s[N][N];
+const int N = 20;
+int mat[N][N];
+int n, min_diff = 1e9;
 bool visited[N];
 
-int calc_diff(int max) {
-	vector<int> start, link;
-	for (int i = 1; i <= max; i++) {
-		if (visited[i]) start.push_back(i);
-		else link.push_back(i);
-	}
-
-	int start_stats = 0, link_stats = 0;
-	for (int i = 0; i < max / 2; i++) {
-		for (int j = 0; j < max / 2; j++) {
-			if (i == j) continue;
-			start_stats += s[start[i]][start[j]];
-			link_stats += s[link[i]][link[j]];
+void solve(int idx, int depth, vector<int> v) {
+	if (depth == n / 2) {
+		int sum_start = 0, sum_link = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				if (visited[i] && visited[j]) sum_start += mat[i][j];
+				if (!visited[i] && !visited[j]) sum_link += mat[i][j];
+			}
 		}
-	}
 
-	int diff = abs(start_stats - link_stats);
-	return diff;
-}
+		int diff = abs(sum_start - sum_link);
+		if (min_diff > diff) min_diff = diff;
 
-void bfs(int num, int src, int max) {
-	visited[src] = true;
-
-	if (num == max / 2) {
-		int diff = calc_diff(max);
-		ret.push_back(diff);
 		return;
 	}
 
-	for (int i = src + 1; i <= max; i++) {
+	for (int i = idx; i < n; i++) {
 		if (visited[i]) continue;
 		visited[i] = true;
-		bfs(num + 1, i, max);
+		v.push_back(i);
+		solve(i, depth + 1, v);
 		visited[i] = false;
+		v.pop_back();
 	}
 }
 
 int main() {
-	ios::sync_with_stdio(0);
-	cin.tie(0);
-
-	int n;
 	cin >> n;
-	for (int i = 1; i <= n; i++) {
-		for (int j = 1; j <= n; j++) {
-			cin >> s[i][j];
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			cin >> mat[i][j];
 		}
 	}
-
-	bfs(0, 0, n);
-	sort(ret.begin(), ret.end());
-	cout << ret[0];
+	vector<int> v;
+	solve(0, 0, v);
+	cout << min_diff;
 
 	return 0;
 }
