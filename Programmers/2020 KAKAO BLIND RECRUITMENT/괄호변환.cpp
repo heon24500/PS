@@ -18,10 +18,10 @@ bool isCorrect(string str) {
 }
 
 string solve(string str) {
-    // 1´Ü°è
+    // 1ë‹¨ê³„
     if (str == "") return str;
 
-    // 2´Ü°è
+    // 2ë‹¨ê³„
     int cnt_left = 0, cnt_right = 0, idx = 0;
     while (true) {
         if (str[idx++] == '(') cnt_left++;
@@ -35,10 +35,10 @@ string solve(string str) {
         else v += str[i];
     }
 
-    // 3´Ü°è
+    // 3ë‹¨ê³„
     if (isCorrect(u)) return u + solve(v);
     else {
-        // 4´Ü°è
+        // 4ë‹¨ê³„
         string ret = "(" + solve(v) + ")";
         for (int i = 1; i < u.size() - 1; i++) {
             if (u[i] == '(') ret += ')';
