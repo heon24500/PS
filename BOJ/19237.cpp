@@ -1,31 +1,97 @@
 #include <iostream>
+#include <vector>
 using namespace std;
 
+typedef pair<int, int> pii;
+
 struct Shark {
-	int y;
-	int x;
-	int d;
+	int y, x, d;
 	bool alive;
 };
 
-struct Map {
-	int s;
-	int t;
-};
-
-const int N = 20, M = N * N + 1;
-int n, m, k, times;
-int dir[M][5][5];
+const int N = 21, M = N * N;
+int n, m, k, t;
+int dir[M][5][4];
 int dy[5] = { 0, -1, 1, 0, 0 };
 int dx[5] = { 0, 0, 0, -1, 1 };
+vector<pii> mat[N];
+vector<int> q[N][N];
 Shark shark[M];
-Map map[N][N];
-int beforeMap[N][N];
 
-void copyMap() {
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			beforeMap[i][j] = map[i][j].s;
+bool isBoundary(int y, int x) {
+	if (y < 1 || y > n || x < 1 || x > n) return true;
+	return false;
+}
+
+void moveShark() {
+	for (int i = 1; i <= m; i++) {
+		if (!shark[i].alive) continue;
+		int y = shark[i].y;
+		int x = shark[i].x;
+		int d = shark[i].d;
+
+		bool flag = false;
+		for (int j = 0; j < 4; j++) {
+			int td = dir[i][d][j];
+			int ty = y + dy[td];
+			int tx = x + dx[td];
+			if (isBoundary(ty, tx)) continue;
+			if (mat[ty][tx].first != 0) continue;
+
+			flag = true;
+			shark[i].y = ty;
+			shark[i].x = tx;
+			shark[i].d = td;
+			q[ty][tx].push_back(i);
+			break;
+		}
+
+		if (!flag) {
+			// 자신의 냄새가 있는 칸으로 이동
+			for (int j = 0; j < 4; j++) {
+				int td = dir[i][d][j];
+				int ty = y + dy[td];
+				int tx = x + dx[td];
+				if (isBoundary(ty, tx) || mat[ty][tx].first != i) continue;
+
+				shark[i].y = ty;
+				shark[i].x = tx;
+				shark[i].d = td;
+				q[ty][tx].push_back(i);
+				break;
+			}
+		}
+	}
+}
+
+void removeSmell() {
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= n; j++) {
+			if (mat[i][j].first == 0) continue;
+			mat[i][j].second--;
+			if (mat[i][j].second == 0) mat[i][j].first = 0;
+		}
+	}
+}
+
+void eatShark() {
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= n; j++) {
+			if (q[i][j].empty()) continue;
+			int num = q[i][j][0];
+			if (q[i][j].size() > 1) {
+				int len = q[i][j].size();
+				for (int l = 1; l < len; l++) {
+					if (num > q[i][j][l]) {
+						shark[num].alive = false;
+						num = q[i][j][l];
+					}
+					else shark[q[i][j][l]].alive = false;
+				}
+			}
+			mat[i][j].first = num;
+			mat[i][j].second = k;
+			q[i][j].clear();
 		}
 	}
 }
@@ -37,96 +103,17 @@ bool isFinish() {
 	return true;
 }
 
-bool isBoundary(int ty, int tx) {
-	if (ty < 0 || ty >= n || tx < 0 || tx >= n) return true;
-	return false;
-}
-
-bool isSmell(int ty, int tx, int shark_num) {
-	int tshark = map[ty][tx].s;
-	if (tshark == 0) return false;
-	if (beforeMap[ty][tx] == 0) return false;
-	return true;
-}
-
-void removeSmell() {
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			int shark_num = map[i][j].s;
-			if (shark_num == 0) continue;
-			if (shark[shark_num].y == i && shark[shark_num].x == j) continue;
-			map[i][j].t--;
-			if (map[i][j].t == 0) map[i][j].s = 0;
-		}
-	}
-}
-
 void solve() {
-	while (true) {
-		if (isFinish()) return;
-		if (times >= 1000) {
-			times = -1;
-			return;
-		}
+	t = 1;
+	while (t <= 1000) {
+		moveShark();  // 상어 이동
+		removeSmell(); // 전체 냄새 시간 -1
+		eatShark();  // 겹치는 경우 잡아먹기
 
-		copyMap();
-
-		for (int i = 1; i <= m; i++) {
-			if (!shark[i].alive) continue;
-
-			int y = shark[i].y;
-			int x = shark[i].x;
-			int d = shark[i].d;
-
-			bool flag = false;
-			for (int j = 1; j <= 4; j++) {
-				int td = dir[i][d][j];
-				int ty = y + dy[td];
-				int tx = x + dx[td];
-				if (isBoundary(ty, tx)) continue;
-				if (isSmell(ty, tx, i)) continue;
-
-				int tshark = map[ty][tx].s;
-				if (tshark == 0 || tshark > i) {
-					map[ty][tx].s = i;
-					map[ty][tx].t = k;
-				}
-				shark[i].y = ty;
-				shark[i].x = tx;
-				shark[i].d = td;
-				flag = true;
-				break;
-			}
-			if (!flag) {
-				for (int j = 1; j <= 4; j++) {
-					int td = dir[i][d][j];
-					int ty = y + dy[td];
-					int tx = x + dx[td];
-					if (isBoundary(ty, tx)) continue;
-					if (map[ty][tx].s != i) continue;
-					shark[i].y = ty;
-					shark[i].x = tx;
-					shark[i].d = td;
-					map[ty][tx].t = k;
-					break;
-				}
-			}
-		}
-
-		for (int i = 1; i <= m; i++) {
-			if (!shark[i].alive) continue;
-			for (int j = 1; j <= m; j++) {
-				if (!shark[j].alive || i == j) continue;
-				if (shark[i].y == shark[j].y && shark[i].x == shark[j].x) {
-					if (i > j) shark[i].alive = false;
-					else shark[j].alive = false;
-				}
-			}
-		}
-
-		removeSmell();
-		times++;
+		if (isFinish()) return;  // 끝났는지 확인
+		t++;
 	}
+	t = -1;
 }
 
 int main() {
@@ -135,32 +122,34 @@ int main() {
 	cout.tie(0);
 
 	cin >> n >> m >> k;
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
+	for (int i = 1; i <= n; i++) {
+		vector<pii> temp(N);
+		for (int j = 1; j <= n; j++) {
 			int num;
 			cin >> num;
-			map[i][j].s = num;
+			temp[j].first = num;
 			if (num != 0) {
-				map[i][j].t = k;
+				temp[j].second = k;
 				shark[num].y = i;
 				shark[num].x = j;
 				shark[num].alive = true;
 			}
 		}
+		mat[i] = temp;
 	}
 	for (int i = 1; i <= m; i++) {
 		cin >> shark[i].d;
 	}
 	for (int i = 1; i <= m; i++) {
 		for (int j = 1; j <= 4; j++) {
-			for (int l = 1; l <= 4; l++) {
+			for (int l = 0; l < 4; l++) {
 				cin >> dir[i][j][l];
 			}
 		}
 	}
 
 	solve();
-	cout << times;
+	cout << t;
 
 	return 0;
 }
