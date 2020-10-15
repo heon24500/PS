@@ -1,29 +1,32 @@
 #include <iostream>
-#include <vector>
 #include <queue>
-#include <algorithm>
 using namespace std;
 
 typedef pair<int, int> pii;
 
-const int N = 21;
-int n, m, y, x, remain;
+struct Pass {
+	int sy, sx, dy, dx;
+};
+
+const int N = 21, M = N * N;
+int n, m, remain, y, x;
 int mat[N][N];
 int dy[4] = { 0, 1, 0, -1 };
 int dx[4] = { 1, 0, -1, 0 };
-vector<pair<pii, pii> > pass;
+Pass pass[M];
 
 bool isPossible(int ty, int tx) {
-	if (ty <= 0 || ty > n || tx <= 0 || tx > n || mat[ty][tx] == 1) return false;
+	if (ty < 1 || ty > n || tx < 1 || tx > n || mat[ty][tx] == -1) return false;
 	return true;
 }
 
-pii searchSrc() {
+int goPass() {
 	queue<pii> q;
 	q.push({ y, x });
+
+	int dist[N][N] = { 0 };
 	bool visited[N][N] = { 0 };
 	visited[y][x] = true;
-	int dist[N][N] = { 0 };
 
 	while (!q.empty()) {
 		pii now = q.front();
@@ -34,37 +37,38 @@ pii searchSrc() {
 		for (int i = 0; i < 4; i++) {
 			int ty = ny + dy[i];
 			int tx = nx + dx[i];
-			if (!isPossible(ty, tx)) continue;
-			if (visited[ty][tx]) continue;
+			if (!isPossible(ty, tx) || visited[ty][tx]) continue;
 			q.push({ ty, tx });
 			dist[ty][tx] = dist[ny][nx] + 1;
 			visited[ty][tx] = true;
 		}
 	}
 
-	int len = pass.size();
-	int min_dist = 1e9;
-	int ret = 0;
-	for (int i = 0; i < len; i++) {
-		if (!visited[pass[i].first.first][pass[i].first.second]) continue;
-		if (min_dist > dist[pass[i].first.first][pass[i].first.second]) {
-			min_dist = dist[pass[i].first.first][pass[i].first.second];
-			ret = i;
+	int min_dist = 1e9, target = 0;
+	for (int i = 1; i <= n; i++) {
+		for (int j = 1; j <= n; j++) {
+			if (!visited[i][j] || mat[i][j] < 1) continue;
+			if (min_dist > dist[i][j]) {
+				min_dist = dist[i][j];
+				target = mat[i][j];
+			}
 		}
 	}
 
-	return make_pair(ret, min_dist);
+	y = pass[target].sy;
+	x = pass[target].sx;
+	mat[y][x] = 0;
+	remain -= min_dist;
+	return target;
 }
 
-int searchDest(int num) {
+void goGoal(int target) {
 	queue<pii> q;
 	q.push({ y, x });
+
+	int dist[N][N] = { 0 };
 	bool visited[N][N] = { 0 };
 	visited[y][x] = true;
-	int dist[N][N] = { 0 };
-
-	int desty = pass[num].second.first;
-	int destx = pass[num].second.second;
 
 	while (!q.empty()) {
 		pii now = q.front();
@@ -72,58 +76,68 @@ int searchDest(int num) {
 
 		int ny = now.first;
 		int nx = now.second;
-		if (ny == desty && nx == destx) return dist[ny][nx];
+		if (ny == pass[target].dy && nx == pass[target].dx) break;
 
 		for (int i = 0; i < 4; i++) {
 			int ty = ny + dy[i];
 			int tx = nx + dx[i];
-			if (!isPossible(ty, tx)) continue;
-			if (visited[ty][tx]) continue;
+			if (!isPossible(ty, tx) || visited[ty][tx]) continue;
 			q.push({ ty, tx });
 			dist[ty][tx] = dist[ny][nx] + 1;
 			visited[ty][tx] = true;
 		}
 	}
 
-	return -1;
+	y = pass[target].dy;
+	x = pass[target].dx;
+	if (!visited[y][x]) {
+		remain = -1;
+		return;
+	}
+
+	int d = dist[pass[target].dy][pass[target].dx];
+	if (remain < d) remain = -1;
+	else remain += d;
 }
 
-int solve() {
-	while (true) {
-		// 손님 탐색 및 이동
-		pii now = searchSrc();
-		int num = now.first;
-		y = pass[num].first.first;
-		x = pass[num].first.second;
-		if (remain <= now.second) return -1;  // 승객까지 도달 불가한 경우
-		remain -= now.second;
+void solve() {
+	for (int i = 1; i <= m; i++) {
+		int pn = goPass();
+		if (remain <= 0) {
+			remain = -1;
+			return;
+		}
 
-		// 목적지 이동
-		int dist = searchDest(num);
-		if (dist == -1 || remain < dist) return -1;  // 목적지까지 도달 불가한 경우
-		remain += dist;
-		y = pass[num].second.first;
-		x = pass[num].second.second;
-		pass.erase(pass.begin() + num);
-		if (pass.empty()) return remain;
+		goGoal(pn);
+		if (remain < 0) {
+			remain = -1;
+			return;
+		}
 	}
 }
 
 int main() {
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cout.tie(0);
+
 	cin >> n >> m >> remain;
 	for (int i = 1; i <= n; i++) {
 		for (int j = 1; j <= n; j++) {
 			cin >> mat[i][j];
+			if (mat[i][j] == 1) mat[i][j] = -1;
 		}
 	}
 	cin >> y >> x;
-	for (int i = 0; i < m; i++) {
-		int sy, sx, desty, destx;
-		cin >> sy >> sx >> desty >> destx;
-		pass.push_back({ {sy, sx}, {desty, destx} });
+	for (int i = 1; i <= m; i++) {
+		int sy, sx, dy, dx;
+		cin >> sy >> sx >> dy >> dx;
+		mat[sy][sx] = i;
+		pass[i] = { sy, sx, dy, dx };
 	}
-	sort(pass.begin(), pass.end());
-	cout << solve();
+
+	solve();
+	cout << remain;
 
 	return 0;
 }
