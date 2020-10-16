@@ -2,147 +2,131 @@
 using namespace std;
 
 struct Horse {
-	int y;
-	int x;
-	bool finish;
+	int y, x;
+	bool alive;
 };
 
-int mat[5][25], dice[10];
 int ans;
-Horse horse[5];
+int mat[5][30], dice[10];
+Horse horse[4];
 
-bool moveHorse(int n, int d) {
-	int y = horse[n].y;
-	int x = horse[n].x;
+bool isPossible(int hn, int dist) {
+	int y = horse[hn].y;
+	int x = horse[hn].x;
 
 	if (y == 0) {
 		if (x == 5) {
-			if (d > 3) {
-				y = 4;
-				x = d - 3;
-			}
-			else {
-				y = 1;
-				x = d;
-			}
+			y = 1;
+			x = 1;
+			dist--;
 		}
 		else if (x == 10) {
-			if (d > 2) {
-				y = 4;
-				x = d - 2;
-			}
-			else {
-				y = 2;
-				x = d;
-			}
+			y = 2;
+			x = 1;
+			dist--;
 		}
 		else if (x == 15) {
-			if (d > 3) {
-				y = 4;
-				x = d - 3;
-			}
-			else {
-				y = 3;
-				x = d;
-			}
+			y = 3;
+			x = 1;
+			dist--;
 		}
 		else {
-			x += d;
+			x += dist;
+			dist = 0;
 		}
-		d = 0;
 	}
-	else if (y == 1) {
-		if (x + d > 3) {
+
+	if (y == 1 || y == 3) {
+		if (x + dist > 3) {
+			dist -= 4 - x;
 			y = 4;
-			x = x + d - 3;
+			x = 1;
 		}
-		else x += d;
-		d = 0;
+		else {
+			x += dist;
+			dist = 0;
+		}
 	}
-	else if (y == 2) {
-		if (x + d > 2) {
+
+	if (y == 2) {
+		if (x + dist > 2) {
+			dist -= 3 - x;
 			y = 4;
-			x = x + d - 2;
+			x = 1;
 		}
-		else x += d;
-		d = 0;
-	}
-	else if (y == 3) {
-		if (x + d > 3) {
-			y = 4;
-			x = x + d - 3;
+		else {
+			x += dist;
+			dist = 0;
 		}
-		else x += d;
-		d = 0;
 	}
 
 	if (y == 4) {
-		x += d;
-		if (x > 4) {
-			horse[n].finish = true;
+		if (x + dist > 4) {
+			horse[hn].alive = false;
 			return true;
 		}
-		else if (x == 4) {
+		else if (x + dist == 4) {
 			y = 0;
 			x = 20;
+			dist = 0;
+		}
+		else {
+			x += dist;
+			dist = 0;
 		}
 	}
 
 	if (y == 0 && x > 20) {
-		horse[n].finish = true;
+		horse[hn].alive = false;
 		return true;
 	}
-
-	for (int i = 0; i < 4; i++) {
-		if (i == n || horse[i].finish) continue;
-		if (horse[i].y == y && horse[i].x == x) return false;
+	else {
+		for (int i = 0; i < 4; i++) {
+			if (i == hn || !horse[i].alive) continue;
+			if (horse[i].y == y && horse[i].x == x) return false;
+		}
 	}
 
-	horse[n].y = y;
-	horse[n].x = x;
+	horse[hn].y = y;
+	horse[hn].x = x;
 	return true;
 }
 
-void backup(Horse horse_bak[5], bool isBackup) {
+void backup(Horse horse_bak[4], bool isBackup) {
 	if (isBackup) {
-		for (int i = 0; i < 5; i++) {
-			horse_bak[i] = horse[i];
-		}
+		for (int i = 0; i < 4; i++) horse_bak[i] = horse[i];
 	}
 	else {
-		for (int i = 0; i < 5; i++) {
-			horse[i] = horse_bak[i];
-		}
+		for (int i = 0; i < 4; i++) horse[i] = horse_bak[i];
 	}
 }
 
 void solve(int depth, int sum) {
-	if (depth == 10) {
-		ans = max(ans, sum);
-		return;
-	}
+	ans = max(ans, sum);
+	if (depth == 10) return;
 
-	Horse horse_bak[5];
+	Horse horse_bak[4];
 	backup(horse_bak, true);
-
 	for (int i = 0; i < 4; i++) {
-		if (horse[i].finish) continue;
-
-		if (moveHorse(i, dice[depth])) {
-			int cost = mat[horse[i].y][horse[i].x];
-			if (horse[i].finish) cost = 0;
-			solve(depth + 1, sum + cost);
-			backup(horse_bak, false);
-		}
+		if (!horse[i].alive) continue;
+		if (!isPossible(i, dice[depth])) continue;
+		if (horse[i].alive) solve(depth + 1, sum + mat[horse[i].y][horse[i].x]);
+		else solve(depth + 1, sum);
+		backup(horse_bak, false);
 	}
 }
 
 int main() {
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cout.tie(0);
+
 	for (int i = 1; i <= 20; i++) mat[0][i] = i * 2;
 	for (int i = 1; i <= 3; i++) mat[1][i] = 10 + i * 3;
 	for (int i = 1; i <= 2; i++) mat[2][i] = 20 + i * 2;
-	for (int i = 1; i <= 3; i++) mat[3][i] = 30 - i - 1;
+	for (int i = 1; i <= 3; i++) mat[3][i] = 29 - i;
 	for (int i = 1; i <= 3; i++) mat[4][i] = 20 + i * 5;
+	for (int i = 0; i < 4; i++) horse[i].alive = true;
 
 	for (int i = 0; i < 10; i++) {
 		cin >> dice[i];
