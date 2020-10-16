@@ -5,12 +5,12 @@ using namespace std;
 
 typedef pair<int, int> pii;
 
-const int N = 50, M = 10;
-int n, m, ans = -1, len, remain;
-int mat[N][N], dist[N][N];
+const int N = 51, M = 11;
+int n, m, cnt, ans = 1e9;
+int mat[N][N];
 int dy[4] = { 0, 1, 0, -1 };
 int dx[4] = { 1, 0, -1, 0 };
-bool check[M];
+bool visited[M];
 vector<pii> v;
 
 bool isPossible(int y, int x) {
@@ -19,61 +19,56 @@ bool isPossible(int y, int x) {
 }
 
 void bfs() {
-	int now_remain = remain;
 	queue<pii> q;
-	bool visited[N][N] = { 0 };
+	bool check[N][N] = { 0 };
 	int dist[N][N] = { 0 };
-	for (int i = 0; i < len; i++) {
-		if (!check[i]) continue;
+	for (int i = 0; i < cnt; i++) {
+		if (!visited[i]) continue;
+
 		q.push(v[i]);
-		visited[v[i].first][v[i].second] = true;
+		check[v[i].first][v[i].second] = true;
 	}
 
 	while (!q.empty()) {
 		pii now = q.front();
 		q.pop();
-
 		int y = now.first;
 		int x = now.second;
-
-		if (now_remain == 0) break;
 
 		for (int i = 0; i < 4; i++) {
 			int ty = y + dy[i];
 			int tx = x + dx[i];
 			if (!isPossible(ty, tx)) continue;
-			if (visited[ty][tx] && dist[ty][tx] <= dist[y][x] + 1) continue;
-			if (!visited[ty][tx] && mat[ty][tx] == 0) now_remain--;
+			if (check[ty][tx] && dist[ty][tx] <= dist[y][x] + 1) continue;
 			q.push({ ty, tx });
-			visited[ty][tx] = true;
+			check[ty][tx] = true;
 			dist[ty][tx] = dist[y][x] + 1;
 		}
 	}
 
-	if (now_remain != 0) return;
-
-	int max_dist = 0;
+	int ret = 0;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
-			if (mat[i][j] == 1) continue;
-			max_dist = max(max_dist, dist[i][j]);
+			if (mat[i][j] != 0) continue;
+			if (!check[i][j]) return;
+			ret = max(ret, dist[i][j]);
 		}
 	}
-	if (ans == -1) ans = max_dist;
-	else ans = min(ans, max_dist);
+	ans = min(ans, ret);
 }
 
 void solve(int depth, int idx) {
 	if (depth == m) {
 		bfs();
+
 		return;
 	}
 
-	for (int i = idx; i < len; i++) {
-		if (check[i]) continue;
-		check[i] = true;
+	for (int i = idx; i < cnt; i++) {
+		if (visited[i]) continue;
+		visited[i] = true;
 		solve(depth + 1, i);
-		check[i] = false;
+		visited[i] = false;
 	}
 }
 
@@ -86,14 +81,12 @@ int main() {
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
 			cin >> mat[i][j];
-			if (mat[i][j] == 1) dist[i][j] = -1;
 			if (mat[i][j] == 2) v.push_back({ i, j });
-			if (mat[i][j] == 0) remain++;
 		}
 	}
-
-	len = v.size();
+	cnt = v.size();
 	solve(0, 0);
+	if (ans == 1e9) ans = -1;
 	cout << ans;
 
 	return 0;
