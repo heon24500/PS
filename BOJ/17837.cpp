@@ -1,103 +1,88 @@
 #include <iostream>
-#include <queue>
+#include <stack>
 using namespace std;
 
-struct Horse {
-	int y;
-	int x;
-	int d;
+struct Node {
+	int y, x, d;
 };
 
 const int N = 13, K = 11;
-int n, k;
+int n, k, ans;
 int mat[N][N];
 int dy[5] = { 0, 0, 0, -1, 1 };
 int dx[5] = { 0, 1, -1, 0, 0 };
-Horse horse[K];
-deque<int> dq[N][N];
+stack<int> s[N][N];
+Node node[K];
 
-bool isFinish() {
-	for (int y = 1; y <= n; y++) {
-		for (int x = 1; x <= n; x++) {
-			if (dq[y][x].size() >= 4) return true;
-		}
-	}
-	return false;
-}
-
-void moveWhite(int num, int y, int x, int ty, int tx) {
-	deque<int> temp;
-	while (dq[y][x].back() != num) {
-		temp.push_back(dq[y][x].back());
-		dq[y][x].pop_back();
-	}
-	dq[y][x].pop_back();
-	temp.push_back(num);
-	while (!temp.empty()) {
-		int h = temp.back();
-		dq[ty][tx].push_back(h);
-		horse[h].y = ty;
-		horse[h].x = tx;
-		temp.pop_back();
-	}
-}
-
-void moveRed(int num, int y, int x, int ty, int tx) {
-	deque<int> temp;
-	while (dq[y][x].back() != num) {
-		temp.push_back(dq[y][x].back());
-		dq[y][x].pop_back();
-	}
-	dq[y][x].pop_back();
-	temp.push_back(num);
-	while (!temp.empty()) {
-		int h = temp.front();
-		dq[ty][tx].push_back(h);
-		horse[h].y = ty;
-		horse[h].x = tx;
-		temp.pop_front();
-	}
-}
-
-int changeDir(int num, int d) {
-	if (d == 1) horse[num].d = 2;
-	if (d == 2) horse[num].d = 1;
-	if (d == 3) horse[num].d = 4;
-	if (d == 4) horse[num].d = 3;
-	return horse[num].d;
-}
-
-bool isBoundary(int num, int y, int x, int ty, int tx, int d) {
-	if (ty >= 1 && ty <= n && tx >= 1 && tx <= n && mat[ty][tx] != 2) return false;
-
-	d = changeDir(num, d);
-	ty = y + dy[d];
-	tx = x + dx[d];
-	if (ty >= 1 && ty <= n && tx >= 1 && tx <= n && mat[ty][tx] != 2) {
-		if (mat[ty][tx] == 0) moveWhite(num, y, x, ty, tx);
-		if (mat[ty][tx] == 1) moveRed(num, y, x, ty, tx);
-	}
-
+bool isPossible(int y, int x) {
+	if (y < 1 || y > n || x < 1 || x > n || mat[y][x] == 2) return false;
 	return true;
 }
 
-int solve() {
-	for (int t = 1; t <= 1000; t++) {
+int changeDir(int d) {
+	if (d == 1) return 2;
+	if (d == 2) return 1;
+	if (d == 3) return 4;
+	if (d == 4) return 3;
+}
+
+void solve() {
+	for (ans = 1; ans <= 1000; ans++) {
 		for (int i = 1; i <= k; i++) {
-			int y = horse[i].y;
-			int x = horse[i].x;
-			int d = horse[i].d;
+			int y = node[i].y;
+			int x = node[i].x;
+			int d = node[i].d;
 
 			int ty = y + dy[d];
 			int tx = x + dx[d];
-			if (!isBoundary(i, y, x, ty, tx, d)) {
-				if (mat[ty][tx] == 0) moveWhite(i, y, x, ty, tx);
-				if (mat[ty][tx] == 1) moveRed(i, y, x, ty, tx);
+			if (!isPossible(ty, tx)) {
+				d = changeDir(d);
+				ty = y + dy[d];
+				tx = x + dx[d];
+				node[i].d = d;
+				if (!isPossible(ty, tx)) continue;
 			}
-			if (isFinish()) return t;
+
+			if (mat[ty][tx] == 0) {
+				stack<int> temp;
+				while (s[y][x].top() != i) {
+					int num = s[y][x].top();
+					temp.push(num);
+					s[y][x].pop();
+					node[num].y = ty;
+					node[num].x = tx;
+				}
+				s[y][x].pop();
+				s[ty][tx].push(i);
+				node[i].y = ty;
+				node[i].x = tx;
+				while (!temp.empty()) {
+					s[ty][tx].push(temp.top());
+					temp.pop();
+				}
+			}
+			if (mat[ty][tx] == 1) {
+				while (s[y][x].top() != i) {
+					int num = s[y][x].top();
+					s[ty][tx].push(num);
+					s[y][x].pop();
+					node[num].y = ty;
+					node[num].x = tx;
+				}
+				s[y][x].pop();
+				s[ty][tx].push(i);
+				node[i].y = ty;
+				node[i].x = tx;
+			}
+
+			for (int i = 1; i <= n; i++) {
+				for (int j = 1; j <= n; j++) {
+					if (s[i][j].size() >= 4) return;
+				}
+			}
 		}
 	}
-	return -1;
+	ans = -1;
 }
 
 int main() {
@@ -111,14 +96,16 @@ int main() {
 			cin >> mat[i][j];
 		}
 	}
+
 	for (int i = 1; i <= k; i++) {
 		int y, x, d;
 		cin >> y >> x >> d;
-		horse[i] = { y, x, d };
-		dq[y][x].push_back(i);
+		node[i] = { y, x, d };
+		s[y][x].push(i);
 	}
 
-	cout << solve();
+	solve();
+	cout << ans;
 
 	return 0;
 }
