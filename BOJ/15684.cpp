@@ -5,10 +5,9 @@ const int N = 11, H = 31;
 int n, m, h, ans = 1e9;
 int mat[H][N];
 
-bool isAns() {
+bool isAnswer() {
 	for (int i = 1; i <= n; i++) {
-		int x = i;
-		int y = 1;
+		int x = i, y = 1;
 		while (y <= h) {
 			if (mat[y][x] == 1) x++;
 			else if (mat[y][x - 1] == 1) x--;
@@ -19,12 +18,11 @@ bool isAns() {
 	return true;
 }
 
-void solve(int y, int x, int num) {
-	if (ans < num) return;
-	if (num > 3) return;
-
-	if (isAns()) {
-		ans = min(ans, num);
+void solve(int depth, int y, int x) {
+	if (depth > 3) return;
+	if (ans < depth) return;
+	if (isAnswer()) {
+		ans = min(ans, depth);
 		return;
 	}
 
@@ -33,23 +31,26 @@ void solve(int y, int x, int num) {
 			if (i == y && j < x) continue;
 			if (mat[i][j] == 1 || mat[i][j - 1] == 1 || mat[i][j + 1] == 1) continue;
 			mat[i][j] = 1;
-			solve(i, j, num + 1);
+			solve(depth + 1, i, j);
 			mat[i][j] = 0;
 		}
 	}
 }
 
 int main() {
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cout.tie(0);
+
 	cin >> n >> m >> h;
 	for (int i = 0; i < m; i++) {
 		int a, b;
 		cin >> a >> b;
 		mat[a][b] = 1;
 	}
-
-	solve(1, 1, 0);
-	if (ans == 1e9) cout << -1;
-	else cout << ans;
+	solve(0, 1, 1);
+	if (ans == 1e9) ans = -1;
+	cout << ans;
 
 	return 0;
 }
