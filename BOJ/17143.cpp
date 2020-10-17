@@ -3,11 +3,7 @@
 using namespace std;
 
 struct Shark {
-	int y;
-	int x;
-	int s;
-	int d;
-	int z;
+	int y, x, s, d, z;
 	bool alive;
 };
 
@@ -17,53 +13,38 @@ int dy[5] = { 0, -1, 1, 0, 0 };
 int dx[5] = { 0, 0, 0, 1, -1 };
 int mat[R][C];
 Shark shark[M];
-queue<int> q[R][C];
-
-int changeDir(int d) {
-	if (d == 1) return 2;
-	if (d == 2) return 1;
-	if (d == 3) return 4;
-	if (d == 4) return 3;
-}
-
-bool isBoundary(int y, int x) {
-	if (y < 1 || y > r || x < 1 || x > c) return true;
-	return false;
-}
-
-void dieShark(int num) {
-	shark[num].y = -1;
-	shark[num].x = -1;
-	shark[num].alive = false;
-}
-
-void moveShark(int num, int y, int x) {
-	mat[y][x] = num;
-	shark[num].y = y;
-	shark[num].x = x;
-}
 
 void move() {
+	queue<int> q[R][C];
 	for (int i = 1; i <= m; i++) {
 		if (!shark[i].alive) continue;
+
 		int y = shark[i].y;
 		int x = shark[i].x;
 		int s = shark[i].s;
 		int d = shark[i].d;
-		int z = shark[i].z;
 		mat[y][x] = 0;
 
-		for (int j = 0; j < s; j++) {
-			int ty = y + dy[d];
-			int tx = x + dx[d];
-			if (isBoundary(ty, tx)) {
-				d = changeDir(d);
+		for (int j = 1; j <= s; j++) {
+			if (d == 1 && y == 1) {
+				d = 2;
 				shark[i].d = d;
-				ty = y + dy[d];
-				tx = x + dx[d];
 			}
-			y = ty;
-			x = tx;
+			else if (d == 2 && y == r) {
+				d = 1;
+				shark[i].d = d;
+			}
+			else if (d == 3 && x == c) {
+				d = 4;
+				shark[i].d = d;
+			}
+			else if (d == 4 && x == 1) {
+				d = 3;
+				shark[i].d = d;
+			}
+
+			y += dy[d];
+			x += dx[d];
 		}
 
 		q[y][x].push(i);
@@ -72,20 +53,23 @@ void move() {
 	for (int y = 1; y <= r; y++) {
 		for (int x = 1; x <= c; x++) {
 			if (q[y][x].empty()) continue;
-			int ms = q[y][x].front();
+
+			int num = q[y][x].front();
 			q[y][x].pop();
 
 			while (!q[y][x].empty()) {
-				int now = q[y][x].front();
+				int num2 = q[y][x].front();
 				q[y][x].pop();
-				if (shark[ms].z > shark[now].z) dieShark(now);
+				if (shark[num].z > shark[num2].z) shark[num2].alive = false;
 				else {
-					dieShark(ms);
-					ms = now;
+					shark[num].alive = false;
+					num = num2;
 				}
 			}
 
-			moveShark(ms, y, x);
+			shark[num].y = y;
+			shark[num].x = x;
+			mat[y][x] = num;
 		}
 	}
 }
@@ -93,10 +77,12 @@ void move() {
 void solve() {
 	for (int x = 1; x <= c; x++) {
 		for (int y = 1; y <= r; y++) {
-			int num = mat[y][x];
-			if (num == 0 || !shark[num].alive) continue;
-			ans += shark[num].z;
-			dieShark(num);
+			int n = mat[y][x];
+			if (n == 0 || !shark[n].alive) continue;
+
+			ans += shark[n].z;
+			mat[y][x] = 0;
+			shark[n].alive = false;
 			break;
 		}
 		move();
@@ -104,6 +90,10 @@ void solve() {
 }
 
 int main() {
+	ios::sync_with_stdio(0);
+	cin.tie(0);
+	cout.tie(0);
+
 	cin >> r >> c >> m;
 	for (int i = 1; i <= m; i++) {
 		int y, x, s, d, z;
@@ -112,8 +102,9 @@ int main() {
 		if (d == 3 || d == 4) s %= (c - 1) * 2;
 		shark[i] = { y, x, s, d, z };
 		shark[i].alive = true;
-		mat[shark[i].y][shark[i].x] = i;
+		mat[y][x] = i;
 	}
+
 	solve();
 	cout << ans;
 
