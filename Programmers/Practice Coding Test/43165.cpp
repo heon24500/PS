@@ -5,27 +5,17 @@ using namespace std;
 
 int answer = 0;
 
-void solve(int idx, vector<int> nums, vector<int> sum, int t) {
-    if (idx == nums.size()) {
-        int ret = 0;
-        for (int i = 0; i < sum.size(); i++) {
-            ret += sum[i];
-        }
-        if (ret == t) answer++;
+void dfs(vector<int> numbers, int target, int depth, int sum) {
+    if (depth == numbers.size()) {
+        if (sum == target) answer++;
         return;
     }
 
-    sum.push_back(nums[idx]);
-    solve(idx + 1, nums, sum, t);
-    sum.pop_back();
-
-    sum.push_back(nums[idx] * (-1));
-    solve(idx + 1, nums, sum, t);
-    sum.pop_back();
+    dfs(numbers, target, depth + 1, sum + numbers[depth]);
+    dfs(numbers, target, depth + 1, sum - numbers[depth]);
 }
 
 int solution(vector<int> numbers, int target) {
-    vector<int> temp;
-    solve(0, numbers, temp, target);
+    dfs(numbers, target, 0, 0);
     return answer;
 }
