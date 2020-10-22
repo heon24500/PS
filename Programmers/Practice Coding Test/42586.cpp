@@ -1,28 +1,19 @@
 #include <string>
 #include <vector>
-#include <queue>
 
 using namespace std;
 
 vector<int> solution(vector<int> progresses, vector<int> speeds) {
-    vector<int> answer;
-    queue<int> q;
+    vector<int> answer, v;
 
-    for (int i = 0; i < progresses.size(); i++) {
-        int remain = 100 - progresses[i];
-        int days = remain / speeds[i];
-        if (remain % speeds[i] != 0) days++;
-        q.push(days);
-    }
-
-    while (!q.empty()) {
-        int cnt = 0;
-        int now = q.front();
-        while (!q.empty() && now >= q.front()) {
-            q.pop();
-            cnt++;
-        }
-        answer.push_back(cnt);
+    int len = progresses.size(), idx = 0;
+    for (int i = 0; i < len; i++) v.push_back(progresses[i]);
+    while (true) {
+        int b_idx = idx;
+        for (int i = 0; i < len; i++) v[i] += speeds[i];
+        while (idx < len && v[idx] >= 100) idx++;
+        if (b_idx != idx) answer.push_back(idx - b_idx);
+        if (idx == len) break;
     }
 
     return answer;
