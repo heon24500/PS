@@ -4,20 +4,26 @@
 
 using namespace std;
 
+typedef pair<int, int> pii;
+
 vector<int> solution(vector<int> prices) {
-    vector<int> answer(prices.size());
-    stack<pair<int, int> > s;
-    s.push(make_pair(prices[0], 0));
-    for (int i = 1; i < prices.size(); i++) {
+    int n = prices.size();
+
+    vector<int> answer(n);
+    stack<pii> s;
+
+    int i;
+    for (i = 0; i < n; i++) {
         while (!s.empty() && s.top().first > prices[i]) {
             answer[s.top().second] = i - s.top().second;
             s.pop();
         }
-        s.push(make_pair(prices[i], i));
+        s.push({ prices[i], i });
     }
+    i--;
 
     while (!s.empty()) {
-        answer[s.top().second] = prices.size() - s.top().second - 1;
+        answer[s.top().second] = i - s.top().second;
         s.pop();
     }
 
