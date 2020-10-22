@@ -4,28 +4,29 @@
 
 using namespace std;
 
+typedef pair<int, int> pii;
+
 int solution(vector<int> priorities, int location) {
     int answer = 0;
 
-    queue<pair<int, int> > q;
-    for (int i = 0; i < priorities.size(); i++) {
-        q.push(make_pair(priorities[i], i));
-    }
-
+    queue<pii> q;
+    for (int i = 0; i < priorities.size(); i++) q.push({ priorities[i], i });
     while (true) {
         answer++;
-        int max = q.front().first;
+        int max_p = 0;
         for (int i = 0; i < q.size(); i++) {
-            pair<int, int> now = q.front();
-            if (max < now.first) max = now.first;
+            int num = q.front().second;
+            max_p = max(max_p, q.front().first);
             q.pop();
-            q.push(now);
+            q.push({ priorities[num], num });
         }
-        while (q.front().first != max) {
-            pair<int, int> now = q.front();
+
+        while (q.front().first != max_p) {
+            int num = q.front().second;
             q.pop();
-            q.push(now);
+            q.push({ priorities[num], num });
         }
+
         if (q.front().second == location) break;
         q.pop();
     }
