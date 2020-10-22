@@ -1,25 +1,27 @@
 #include <string>
 #include <vector>
 #include <queue>
+
 using namespace std;
 
+typedef pair<int, int> pii;
+
 int solution(int bridge_length, int weight, vector<int> truck_weights) {
-    int answer = 0;
+    int answer = 0, idx = 0, now = 0;
 
-    queue<pair<int, int> > bridge;
-    int bridge_weight = 0;
-
-    while (truck_weights.size() != 0 || !bridge.empty()) {
-        if (!bridge.empty() && bridge.front().second + bridge_length == answer) {
-            bridge_weight -= bridge.front().first;
-            bridge.pop();
-        }
-        if (truck_weights.size() != 0 && bridge_weight + truck_weights[0] <= weight) {
-            bridge_weight += truck_weights[0];
-            bridge.push(make_pair(truck_weights[0], answer));
-            truck_weights.erase(truck_weights.begin());
-        }
+    queue<pii> q;
+    while (true) {
         answer++;
+        if (!q.empty() && q.front().second + bridge_length == answer) {
+            now -= q.front().first;
+            q.pop();
+        }
+        if (idx < truck_weights.size() && (q.empty() || now + truck_weights[idx] <= weight)) {
+            q.push({ truck_weights[idx], answer });
+            now += truck_weights[idx];
+            idx++;
+        }
+        if (idx == truck_weights.size() && q.empty()) break;
     }
 
     return answer;
