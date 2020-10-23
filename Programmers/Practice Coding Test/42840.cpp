@@ -1,28 +1,29 @@
 #include <string>
 #include <vector>
-#include <algorithm>
 
 using namespace std;
 
-int su1[5] = { 1, 2, 3, 4, 5 };
-int su2[8] = { 2, 1, 2, 3, 2, 4, 2, 5 };
-int su3[10] = { 3, 3, 1, 1, 2, 2, 4, 4, 5, 5 };
+int ans[3][10] = {
+    {1, 2, 3, 4, 5},
+    {2, 1, 2, 3, 2, 4, 2, 5},
+    {3, 3, 1, 1, 2, 2, 4, 4, 5, 5}
+};
+int cnt[3];
 
 vector<int> solution(vector<int> answers) {
     vector<int> answer;
 
-    int cnt1 = 0, cnt2 = 0, cnt3 = 0;
+    int max_cnt = 0;
     for (int i = 0; i < answers.size(); i++) {
-        int ans = answers[i];
-        if (ans == su1[i % 5]) cnt1++;
-        if (ans == su2[i % 8]) cnt2++;
-        if (ans == su3[i % 10]) cnt3++;
+        if (answers[i] == ans[0][i % 5]) cnt[0]++;
+        if (answers[i] == ans[1][i % 8]) cnt[1]++;
+        if (answers[i] == ans[2][i % 10]) cnt[2]++;
     }
 
-    int maxi = max(cnt1, max(cnt2, cnt3));
-    if (maxi == cnt1) answer.push_back(1);
-    if (maxi == cnt2) answer.push_back(2);
-    if (maxi == cnt3) answer.push_back(3);
+    for (int i = 0; i < 3; i++) max_cnt = max(max_cnt, cnt[i]);
+    for (int i = 0; i < 3; i++) {
+        if (max_cnt == cnt[i]) answer.push_back(i + 1);
+    }
 
     return answer;
 }
