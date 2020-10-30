@@ -1,6 +1,5 @@
 #include <iostream>
-#include <vector>
-#include <algorithm>
+#include <queue>
 using namespace std;
 
 int main() {
@@ -11,14 +10,17 @@ int main() {
 	int n, m;
 	cin >> n >> m;
 
-	vector<int> v;
+	priority_queue<int, vector<int>, greater<int> > pq;
 	for (int i = 0; i < n + m; i++) {
 		int num;
 		cin >> num;
-		v.push_back(num);
+		pq.push(num);
 	}
-	sort(v.begin(), v.end());
-	for (auto u : v) printf("%d ", u);
+
+	while (!pq.empty()) {
+		cout << pq.top() << " ";
+		pq.pop();
+	}
 
 	return 0;
 }
