@@ -9,6 +9,7 @@ int dx[4] = { 1, 0, -1, 0 };
 void fill() {
 	int cnt = 1, m = n, dir = 1;
 	for (int i = 0; i < n; i++) arr[0][i] = cnt++;
+
 	int y = 0, x = n - 1;
 	while (m--) {
 		for (int i = 0; i < m; i++) {
