@@ -3,31 +3,14 @@
 using namespace std;
 
 int main() {
-    string str, str2;
-    cin >> str;
+	ios::sync_with_stdio(0);
+	cin.tie(0);
 
-    int N = stoi(str);
-    for (int i = 1; i <= N; i++) {
-        str2 += to_string(i);
-    }
+	int n;
+	cin >> n;
+	string str;
+	for (int i = 1; i <= n; i++) str += to_string(i);
+	cout << str.find(to_string(n)) + 1;
 
-    int j = 0, ret = 0;
-    for (int i = 0; i < str2.length(); i++) {
-        if (str2[i] == str[j]) {
-            if (ret == 0) {
-                ret = i + 1;
-                j++;
-            }
-            else j++;
-        }
-        else {
-            j = 0;
-            ret = 0;
-        }
-
-        if (j == str.length()) {
-            cout << ret;
-            break;
-        }
-    }
+	return 0;
 }
